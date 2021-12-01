@@ -1,0 +1,50 @@
+name: "CodeQL"
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 1 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.language }}-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      actions: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['cpp']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@e095058bfa09de8070f94e98f5dc059531bc6235
+      with:
+        languages: ${{ matrix.language }}
+
+    - run: |
+        sudo sed -i -e '/^#\s*deb-src.*\smain\s\+restricted/s/^#//' /etc/apt/sources.list
+        sudo apt-get update
+        sudo apt-get build-dep -y --no-install-recommends elfutils
+        sudo apt-get install -y --no-install-recommends libcurl4-gnutls-dev libmicrohttpd-dev
+        sudo apt-get install -y --no-install-recommends libsqlite3-dev libarchive-dev
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@e095058bfa09de8070f94e98f5dc059531bc6235
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@e095058bfa09de8070f94e98f5dc059531bc6235
