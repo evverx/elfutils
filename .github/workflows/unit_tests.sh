@@ -11,6 +11,7 @@ ADDITIONAL_DEPS=(
     libarchive-dev
     libzstd-dev
     valgrind
+    lcov
 )
 
 set -ex
