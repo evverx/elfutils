@@ -33,8 +33,13 @@ for phase in "${PHASES[@]}"; do
                 # elfutils is failing to compile with clang with -Werror
                 # https://sourceware.org/pipermail/elfutils-devel/2021q1/003538.html
                 # https://reviews.llvm.org/D97445
-                export CFLAGS="-Wno-xor-used-as-pow -Wno-gnu-variable-sized-type-not-at-end"
-                export CXXFLAGS="-Wno-xor-used-as-pow -Wno-gnu-variable-sized-type-not-at-end"
+                #
+                # -g -O2: https://sourceware.org/bugzilla/show_bug.cgi?id=23914
+                #
+                # -fno-addrsig to fix "section [22] '.llvm_addrsig' has unsupported type 1879002115"
+                flags="-Wno-error -g -O2 -fno-addrsig"
+                export CFLAGS="$flags"
+                export CXXFLAGS="$flags"
             fi
 
             $CC --version
@@ -45,7 +50,11 @@ for phase in "${PHASES[@]}"; do
                 cat tests/test-suite.log
                 exit 1
             fi
-            make V=1 distcheck
+
+            # elfutils fails to compile with clang and --enable-sanitize-undefined
+            if [[ "$phase" != "RUN_CLANG" ]]; then
+                make V=1 distcheck
+            fi
             ;;
         *)
             echo >&2 "Unknown phase '$phase'"
