@@ -147,6 +147,28 @@ for phase in "${PHASES[@]}"; do
                 exit 1
             fi
             ;;
+        RUN_CLANG_ASAN_UBSAN)
+            export CC=clang
+            export CXX=clang++
+            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
+            flags="-Wno-error -g -O1 -fsanitize=address,undefined"
+            export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
+            export CFLAGS="$flags"
+            export CXXFLAGS="$flags"
+
+            $CC --version
+            autoreconf -i -f
+            if ! ./configure --enable-maintainer-mode; then
+                cat config.log
+                exit 1
+            fi
+
+            make -j$(nproc) V=1
+            if ! make V=1 check; then
+                cat tests/test-suite.log
+                exit 1
+            fi
+            ;;
         COVERITY)
             coverity_install_script
             autoreconf -i -f
