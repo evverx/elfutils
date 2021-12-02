@@ -163,6 +163,14 @@ for phase in "${PHASES[@]}"; do
             # There should probably be a better way to turn off unaligned access
             sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
 
+            # test-nlist fails to run under ASan with gcc with:
+            #
+            # ==736897==ASan runtime does not come first in initial library list; you should
+            # either link runtime to your application or manually preload it with LD_PRELOAD.
+            #
+            # and fails to compile with clang
+            sed -i 's/ test-nlist / /' tests/Makefile.am
+
             $CC --version
             autoreconf -i -f
             if ! ./configure --enable-maintainer-mode; then
