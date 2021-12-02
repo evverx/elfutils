@@ -158,6 +158,7 @@ for phase in "${PHASES[@]}"; do
 
             # https://github.com/evverx/elfutils/issues/11
             sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
+            find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
 
             $CC --version
             autoreconf -i -f
