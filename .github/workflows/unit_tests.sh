@@ -151,7 +151,7 @@ for phase in "${PHASES[@]}"; do
             export CC=clang
             export CXX=clang++
             export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
-            flags="-Wno-error -g -O1 -fsanitize=address,undefined"
+            flags="-Wno-error -g -O1 -fsanitize=address,undefined -fno-addrsig"
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
             export CFLAGS="$flags"
             export CXXFLAGS="$flags"
