@@ -160,6 +160,9 @@ for phase in "${PHASES[@]}"; do
             sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
             find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
 
+            # There should probably be a better way to turn off unaligned access
+            sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
+
             $CC --version
             autoreconf -i -f
             if ! ./configure --enable-maintainer-mode; then
