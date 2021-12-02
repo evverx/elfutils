@@ -92,7 +92,7 @@ for phase in "${PHASES[@]}"; do
                 # -g -O2: https://sourceware.org/bugzilla/show_bug.cgi?id=23914
                 #
                 # -fno-addrsig to fix "section [22] '.llvm_addrsig' has unsupported type 1879002115"
-                flags="-g -O2 -fno-addrsig"
+                flags="-g -O2 -fno-addrsig -Wno-error=xor-used-as-pow"
                 export CFLAGS="$flags"
                 export CXXFLAGS="$flags"
             fi
