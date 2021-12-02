@@ -147,6 +147,50 @@ for phase in "${PHASES[@]}"; do
                 exit 1
             fi
             ;;
+        RUN_CLANG_ASAN_UBSAN)
+            export CC=clang
+            export CXX=clang++
+            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
+            # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
+            export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
+            flags="-Wno-error -g -O1 -fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-addrsig"
+            export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
+            export CFLAGS="$flags"
+            export CXXFLAGS="$flags"
+
+            # https://github.com/evverx/elfutils/issues/11
+            sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
+            find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
+
+            # There should probably be a better way to turn off unaligned access
+            sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
+
+            # test-nlist fails to run under ASan with gcc with:
+            #
+            # ==736897==ASan runtime does not come first in initial library list; you should
+            # either link runtime to your application or manually preload it with LD_PRELOAD.
+            #
+            # and fails to compile with clang
+            sed -i 's/ test-nlist / /' tests/Makefile.am
+
+            # https://github.com/evverx/elfutils/issues/8
+            for f in run-debuginfod-archive-groom.sh run-debuginfod-archive-rename.sh run-debuginfod-archive-test.sh; do
+                printf "exit 77\n" >"tests/$f"
+            done
+
+            $CC --version
+            autoreconf -i -f
+            if ! ./configure --enable-maintainer-mode; then
+                cat config.log
+                exit 1
+            fi
+
+            make -j$(nproc) V=1
+            if ! make V=1 check; then
+                cat tests/test-suite.log
+                exit 1
+            fi
+            ;;
         COVERITY)
             coverity_install_script
             autoreconf -i -f
