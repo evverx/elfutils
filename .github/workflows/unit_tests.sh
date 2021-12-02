@@ -111,67 +111,50 @@ for phase in "${PHASES[@]}"; do
                 make V=1 distcheck
             fi
             ;;
-        RUN_GCC_ASAN_UBSAN)
+        RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN)
             export CC=gcc
             export CXX=g++
-            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
+
+            # https://github.com/evverx/elfutils/issues/21
+            # https://github.com/evverx/elfutils/issues/20
+            export ASAN_OPTIONS=detect_leaks=0
+
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
+
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
-            flags="-g -O1 -fsanitize=address,undefined"
-            export CFLAGS="$flags"
-            export CXXFLAGS="$flags"
 
-            # There should probably be a better way to turn off unaligned access
-            sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
+            common_flags="-g -O1 -fsanitize=address,undefined"
+            export CFLAGS="$common_flags"
+            export CXXFLAGS="$common_flags"
 
-            # test-nlist fails to run under ASan with gcc with:
-            #
-            # ==736897==ASan runtime does not come first in initial library list; you should
-            # either link runtime to your application or manually preload it with LD_PRELOAD.
-            #
-            # and fails to compile with clang
-            sed -i 's/ test-nlist / /' tests/Makefile.am
+            if [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
+                export CC=clang
+                export CXX=clang++
 
-            # https://github.com/evverx/elfutils/issues/8
-            for f in run-debuginfod-archive-groom.sh run-debuginfod-archive-rename.sh run-debuginfod-archive-test.sh; do
-                printf "exit 77\n" >"tests/$f"
-            done
+                # https://github.com/evverx/elfutils/issues/16
+                # https://github.com/evverx/elfutils/issues/15
+                sanitize_flags="-fno-sanitize=pointer-overflow -fno-sanitize=vla-bound"
 
-            $CC --version
-            autoreconf -i -f
-            ./configure --enable-maintainer-mode
-            make -j$(nproc) V=1
-            if ! make V=1 check; then
-                cat tests/test-suite.log
-                exit 1
+                # https://github.com/evverx/elfutils/issues/14
+                test_flags="-fno-addrsig"
+
+                # https://github.com/evverx/elfutils/issues/18
+                no_error_flags="-Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
+
+                clang_flags="$common_flags $sanitize_flags $test_flags $no_error_flags"
+                export CFLAGS="$clang_flags"
+                export CXXFLAGS="$clang_flags"
+
+                # https://github.com/evverx/elfutils/issues/11
+                sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
+                find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
             fi
-            ;;
-        RUN_CLANG_ASAN_UBSAN)
-            export CC=clang
-            export CXX=clang++
-            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
-            # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
-            export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
-            flags="-g -O1 -fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-addrsig"
-            flags="$flags -Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
-            export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
-            export CFLAGS="$flags"
-            export CXXFLAGS="$flags"
-
-            # https://github.com/evverx/elfutils/issues/11
-            sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
-            find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
 
             # There should probably be a better way to turn off unaligned access
             sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
 
-            # test-nlist fails to run under ASan with gcc with:
-            #
-            # ==736897==ASan runtime does not come first in initial library list; you should
-            # either link runtime to your application or manually preload it with LD_PRELOAD.
-            #
-            # and fails to compile with clang
+            # https://github.com/evverx/elfutils/issues/13
             sed -i 's/ test-nlist / /' tests/Makefile.am
 
             # https://github.com/evverx/elfutils/issues/8
