@@ -114,7 +114,7 @@ for phase in "${PHASES[@]}"; do
         RUN_GCC_ASAN_UBSAN)
             export CC=gcc
             export CXX=g++
-            export ASAN_OPTIONS=detect_leaks=1 # ideally it shouldn't be neccessary
+            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
@@ -142,7 +142,7 @@ for phase in "${PHASES[@]}"; do
             autoreconf -i -f
             ./configure --enable-maintainer-mode
             make -j$(nproc) V=1
-            if ! make V=1 check; then
+            if ! ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=1" make V=1 check; then
                 cat tests/test-suite.log
                 exit 1
             fi
@@ -150,7 +150,7 @@ for phase in "${PHASES[@]}"; do
         RUN_CLANG_ASAN_UBSAN)
             export CC=clang
             export CXX=clang++
-            export ASAN_OPTIONS=detect_leaks=1 # ideally it shouldn't be neccessary
+            export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
             flags="-g -O1 -fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-addrsig"
@@ -187,7 +187,7 @@ for phase in "${PHASES[@]}"; do
             fi
 
             make -j$(nproc) V=1
-            if ! make V=1 check; then
+            if ! ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=1" make V=1 check; then
                 cat tests/test-suite.log
                 exit 1
             fi
