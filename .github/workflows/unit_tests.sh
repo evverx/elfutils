@@ -151,7 +151,8 @@ for phase in "${PHASES[@]}"; do
             export CC=clang
             export CXX=clang++
             export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
-            export ASAN_OPTIONS="strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
+            # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
+            export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
             flags="-Wno-error -g -O1 -fsanitize=address -fno-addrsig"
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
             export CFLAGS="$flags"
