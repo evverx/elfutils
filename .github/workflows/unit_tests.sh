@@ -156,6 +156,9 @@ for phase in "${PHASES[@]}"; do
             export CFLAGS="$flags"
             export CXXFLAGS="$flags"
 
+            # https://github.com/evverx/elfutils/issues/11
+            sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
+
             $CC --version
             autoreconf -i -f
             if ! ./configure --enable-maintainer-mode; then
