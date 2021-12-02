@@ -170,7 +170,8 @@ for phase in "${PHASES[@]}"; do
                 exit 1
             fi
 
-            make -j$(nproc) V=1
+            # https://github.com/evverx/elfutils/issues/12
+            UBSAN_OPTIONS="$UBSAN_OPTIONS:halt_on_error=0" make -j$(nproc) V=1
             if ! make V=1 check; then
                 cat tests/test-suite.log
                 exit 1
