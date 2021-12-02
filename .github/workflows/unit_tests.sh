@@ -153,7 +153,8 @@ for phase in "${PHASES[@]}"; do
             export ASAN_OPTIONS=detect_leaks=0 # ideally it shouldn't be neccessary
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
-            flags="-Wno-error -g -O1 -fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-addrsig"
+            flags="-g -O1 -fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-addrsig"
+            flags="$flags -Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
             export CFLAGS="$flags"
             export CXXFLAGS="$flags"
