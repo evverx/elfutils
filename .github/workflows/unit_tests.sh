@@ -117,7 +117,7 @@ for phase in "${PHASES[@]}"; do
 
             # https://github.com/evverx/elfutils/issues/21
             # https://github.com/evverx/elfutils/issues/20
-            export ASAN_OPTIONS=detect_leaks=0
+            #export ASAN_OPTIONS=detect_leaks=0
 
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
