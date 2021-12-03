@@ -124,7 +124,7 @@ for phase in "${PHASES[@]}"; do
 
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
 
-            common_flags="-g -O1 -fsanitize=address,undefined"
+            common_flags="-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer"
             export CFLAGS="$common_flags"
             export CXXFLAGS="$common_flags"
 
