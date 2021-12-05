@@ -157,11 +157,6 @@ for phase in "${PHASES[@]}"; do
             # https://github.com/evverx/elfutils/issues/13
             sed -i 's/ test-nlist / /' tests/Makefile.am
 
-            # https://github.com/evverx/elfutils/issues/8
-            for f in run-debuginfod-archive-groom.sh run-debuginfod-archive-rename.sh run-debuginfod-archive-test.sh; do
-                printf "exit 77\n" >"tests/$f"
-            done
-
             $CC --version
             autoreconf -i -f
             if ! ./configure --enable-maintainer-mode; then
