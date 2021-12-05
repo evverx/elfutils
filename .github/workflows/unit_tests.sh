@@ -165,7 +165,7 @@ for phase in "${PHASES[@]}"; do
             fi
 
             make -j$(nproc) V=1
-            if ! make V=1 check; then
+            if ! ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=1" make V=1 check; then
                 cat tests/test-suite.log
                 exit 1
             fi
