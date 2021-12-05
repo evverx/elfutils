@@ -1,0 +1,33 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+specfile_path: .packit_rpm/elfutils.spec
+
+synced_files:
+    - .packit.yaml
+    - src: .packit_rpm/elfutils.spec
+      dest: elfutils.spec
+
+upstream_package_name: elfutils
+downstream_package_name: elfutils
+upstream_project_url: https://sourceware.org/elfutils/
+upstream_tag_template: "elfutils-{version}"
+
+
+actions:
+  post-upstream-clone:
+    # Use the Fedora Rawhide specfile
+    - "git clone https://src.fedoraproject.org/rpms/elfutils .packit_rpm --depth=1"
+    # Drop the "sources" file so rebase-helper doesn't think we're a dist-git
+    - "rm -fv .packit_rpm/sources"
+    - sed -i '/configure CFLAGS=/s/$/ --enable-maintainer-mode/' .packit_rpm/elfutils.spec
+
+jobs:
+- job: copr_build
+  trigger: pull_request
+  metadata:
+    targets:
+    - fedora-rawhide-aarch64
+    - fedora-rawhide-i386
+    - fedora-rawhide-ppc64le
+    - fedora-rawhide-x86_64
