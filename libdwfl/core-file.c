@@ -544,7 +544,7 @@ dwfl_core_file_report (Dwfl *dwfl, Elf *elf, const char *executable)
      used for a live process with auxv read from /proc.  */
 
   struct r_debug_info r_debug_info;
-  memset (&r_debug_info, 0, sizeof r_debug_info);
+  memset (&r_debug_info, 0, 100000);
   int retval = dwfl_link_map_report (dwfl, auxv, auxv_size,
 				     dwfl_elf_phdr_memory_callback, elf,
 				     &r_debug_info);
