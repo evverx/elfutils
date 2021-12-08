@@ -4,6 +4,6 @@ RUN apt-get update && \
 COPY . $SRC/elfutils
 RUN git clone --depth 1 https://github.com/google/oss-fuzz && \
     cp oss-fuzz/projects/elfutils/build.sh $SRC/ && \
-    cp oss-fuzz/projects/elfutils/fuzz-dwfl-core.c $SRC/
-COPY ./fuzz-dwfl-core_seed_corpus.zip $SRC/
+    cp oss-fuzz/projects/elfutils/fuzz-dwfl-core.c $SRC/ && \
+    cp oss-fuzz/projects/elfutils/fuzz-dwfl-core_seed_corpus.zip $SRC/
 WORKDIR elfutils
