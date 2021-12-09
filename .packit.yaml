@@ -20,7 +20,7 @@ actions:
     - "git clone https://src.fedoraproject.org/rpms/elfutils .packit_rpm --depth=1"
     # Drop the "sources" file so rebase-helper doesn't think we're a dist-git
     - "rm -fv .packit_rpm/sources"
-    - sed -i '/configure CFLAGS=/s/$/ --enable-maintainer-mode/' .packit_rpm/elfutils.spec
+    - sed -i '/configure CFLAGS=/s/$/ --enable-maintainer-mode --enable-sanitizer-address/' .packit_rpm/elfutils.spec
 
 jobs:
 - job: copr_build
