@@ -115,26 +115,24 @@ for phase in "${PHASES[@]}"; do
             export CC=gcc
             export CXX=g++
 
-            # https://github.com/evverx/elfutils/issues/21
-            # https://github.com/evverx/elfutils/issues/20
-            export ASAN_OPTIONS=detect_leaks=0
-
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
-            export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:$ASAN_OPTIONS"
+            export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
 
             export UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1
 
-            common_flags="-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer"
+            common_flags="-g -O1 -fno-omit-frame-pointer"
             export CFLAGS="$common_flags"
             export CXXFLAGS="$common_flags"
 
-            if [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
+            if [[ "$phase" = "RUN_GCC_ASAN_UBSAN" ]]; then
+                additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address"
+            elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
                 export CC=clang
                 export CXX=clang++
 
                 # https://github.com/evverx/elfutils/issues/16
                 # https://github.com/evverx/elfutils/issues/15
-                sanitize_flags="-fno-sanitize=pointer-overflow -fno-sanitize=vla-bound"
+                sanitize_flags="-fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound"
 
                 # https://github.com/evverx/elfutils/issues/14
                 test_flags="-fno-addrsig"
@@ -146,25 +144,31 @@ for phase in "${PHASES[@]}"; do
                 export CFLAGS="$clang_flags"
                 export CXXFLAGS="$clang_flags"
 
+                # There should probably be a better way to turn off unaligned access
+                sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
+
                 # https://github.com/evverx/elfutils/issues/11
                 sed -i 's/^\(ZDEFS_LDFLAGS=\).*/\1/' configure.ac
                 find -name Makefile.am | xargs sed -i 's/,--no-undefined//'
+
+                # https://github.com/evverx/elfutils/issues/13
+                sed -i 's/ test-nlist / /' tests/Makefile.am
             fi
-
-            # There should probably be a better way to turn off unaligned access
-            sed -i 's/\(check_undefined_val\)=[0-9]/\1=1/' configure.ac
-
-            # https://github.com/evverx/elfutils/issues/13
-            sed -i 's/ test-nlist / /' tests/Makefile.am
 
             $CC --version
             autoreconf -i -f
-            if ! ./configure --enable-maintainer-mode; then
+            if ! ./configure --enable-maintainer-mode $additional_configure_flags; then
                 cat config.log
                 exit 1
             fi
 
-            make -j$(nproc) V=1
+            if [[ "$phase" = "RUN_GCC_ASAN_UBSAN" ]]; then
+                make -j$(nproc) V=1
+            elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
+                # https://github.com/evverx/elfutils/issues/20
+                ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=0" make -j$(nproc) V=1
+            fi
+
             if ! make V=1 check; then
                 cat tests/test-suite.log
                 exit 1
