@@ -20,10 +20,13 @@
 # If there is nothing to strip then -o output should be identical to input.
 # And there should not be an (empty) -f debug file.
 
-tempfiles a.out strip.out debug.out
+tmpfile=main.c
+
+tempfiles $tmpfile a.out strip.out debug.out
 
 # Create no-debug a.out.
-echo "int main() { return 1; }" | ${CC} -s -xc -
+echo "int main() { return 1; }" >$tmpfile
+${CC} -s $tmpfile
 
 # strip to file
 testrun ${abs_top_builddir}/src/strip -g -o strip.out ||

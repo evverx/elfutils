@@ -62,6 +62,7 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  getphdrnum leb128 read_unaligned \
 		  msg_tst system-elf-libelf-test \
 		  nvidia_extended_linemap_libdw \
+		  fuzz-dwfl-core \
 		  $(asm_TESTS)
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
@@ -197,7 +198,8 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	msg_tst system-elf-libelf-test \
 	$(asm_TESTS) run-disasm-bpf.sh run-low_high_pc-dw-form-indirect.sh \
 	run-nvidia-extended-linemap-libdw.sh run-nvidia-extended-linemap-readelf.sh \
-	run-readelf-dw-form-indirect.sh run-strip-largealign.sh
+	run-readelf-dw-form-indirect.sh run-strip-largealign.sh \
+	run-fuzz-dwfl-core.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -580,13 +582,18 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-readelf-dw-form-indirect.sh testfile-dw-form-indirect.bz2 \
 	     run-nvidia-extended-linemap-libdw.sh run-nvidia-extended-linemap-readelf.sh \
 	     testfile_nvidia_linemap.bz2 \
-	     testfile-largealign.o.bz2 run-strip-largealign.sh
+	     testfile-largealign.o.bz2 run-strip-largealign.sh \
+	     run-fuzz-dwfl-core.sh \
+	     fuzz-dwfl-core-crashes/empty \
+	     fuzz-dwfl-core-crashes/bugzilla-28660 \
+	     fuzz-dwfl-core-crashes/oss-fuzz-41566 \
+	     fuzz-dwfl-core-crashes/oss-fuzz-41570 \
+	     fuzz-dwfl-core-crashes/oss-fuzz-41572
 
 
 if USE_VALGRIND
 valgrind_cmd=valgrind -q --leak-check=full --error-exitcode=1
 endif
-
 
 installed_TESTS_ENVIRONMENT = libdir='$(DESTDIR)$(libdir)'; \
 			      bindir='$(DESTDIR)$(bindir)'; \
@@ -595,9 +602,13 @@ installed_TESTS_ENVIRONMENT = libdir='$(DESTDIR)$(libdir)'; \
 			      abs_srcdir='$(abs_srcdir)'; \
 			      abs_builddir='$(abs_builddir)'; \
 			      abs_top_builddir='$(abs_top_builddir)'; \
+			      afl_fuzz='$(AFL_FUZZ)'; \
+			      honggfuzz='$(HONGGFUZZ)'; \
 			      export abs_srcdir; export abs_builddir; \
 			      export abs_top_builddir; \
 			      export libdir; export bindir; \
+			      export afl_fuzz; \
+			      export honggfuzz; \
 			      export LC_ALL; export LANG; export VALGRIND_CMD; \
 			      unset DEBUGINFOD_URLS; \
 			      NM='$(NM)'; export NM; \
@@ -609,8 +620,12 @@ TESTS_ENVIRONMENT = LC_ALL=C; LANG=C; VALGRIND_CMD='$(valgrind_cmd)'; \
 		    abs_srcdir='$(abs_srcdir)'; \
 		    abs_builddir='$(abs_builddir)'; \
 		    abs_top_builddir='$(abs_top_builddir)'; \
+		    afl_fuzz='$(AFL_FUZZ)'; \
+		    honggfuzz='$(HONGGFUZZ)'; \
 		    export abs_srcdir; export abs_builddir; \
 		    export abs_top_builddir; \
+		    export afl_fuzz; \
+		    export honggfuzz; \
 		    export LC_ALL; export LANG; export VALGRIND_CMD; \
 		    unset DEBUGINFOD_URLS; \
 		    NM='$(NM)'; export NM; \
@@ -754,6 +769,19 @@ getphdrnum_LDADD = $(libelf) $(libdw)
 leb128_LDADD = $(libelf) $(libdw)
 read_unaligned_LDADD = $(libelf) $(libdw)
 nvidia_extended_linemap_libdw_LDADD = $(libelf) $(libdw)
+
+# Fuzz targets are split into two files so that they can be
+# compatible with the test suite, OSS-Fuzz and various fuzzing
+# engines. OSS-Fuzz takes files containing LLVMFuzzerTestOneInput
+# and links them against libFuzzer, AFL++ and honggfuzz.
+# The testsuite links them against fuzz-main.c (which is a local driver reading
+# files into buffers and passing those buffers to LLVMFuzzerTestOneInput).
+# And various fuzzing engines working with binaries reading files
+# they generate can be used as well because fuzz-main.c provides
+# exactly what they expect.
+noinst_HEADERS=fuzz.h
+fuzz_dwfl_core_SOURCES = fuzz-main.c fuzz-dwfl-core.c
+fuzz_dwfl_core_LDADD = $(libelf) $(libdw)
 
 # We want to test the libelf header against the system elf.h header.
 # Don't include any -I CPPFLAGS. Except when we install our own elf.h.

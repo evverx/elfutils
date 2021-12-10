@@ -22,10 +22,13 @@
 # debug sections and so there should not be a copy in the debug file
 # except for a NOBITS one.
 
-tempfiles a.out strip.out debug.out readelf.out
+tmpfile=main.c
+
+tempfiles $tmpfile a.out strip.out debug.out readelf.out
 
 echo Create debug a.out.
-echo "int main() { return 1; }" | ${CC} -g -xc -
+echo "int main() { return 1; }" >$tmpfile
+${CC} -g $tmpfile
 
 echo strip -g to file with debug file
 testrun ${abs_top_builddir}/src/strip -g -o strip.out -f debug.out ||
