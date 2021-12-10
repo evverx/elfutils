@@ -66,6 +66,7 @@
 /find-prologues
 /funcretval
 /funcscopes
+/fuzz-dwfl-core
 /get-aranges
 /get-files
 /get-lines
