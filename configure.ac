@@ -87,6 +87,23 @@ AS_IF([test "$use_locks" = yes],
 
 AH_TEMPLATE([USE_LOCKS], [Defined if libraries should be thread-safe.])
 
+AC_ARG_ENABLE([honggfuzz],
+AS_HELP_STRING([--enable-honggfuzz],[build binaries with honggfuzz]), [use_honggfuzz=$enableval], [use_honggfuzz=no])
+if test "$use_honggfuzz" = yes; then
+    AC_CHECK_PROG(CC, hfuzz-gcc, hfuzz-gcc)
+    if test -z "$CC"; then
+        AC_MSG_ERROR([failed to find hfuzz-gcc])
+    fi
+    AC_CHECK_PROG(CXX, hfuzz-g++, hfuzz-g++)
+    if test -z "$CXX"; then
+        AC_MSG_ERROR([failed to find hfuzz-g++])
+    fi
+    AC_CHECK_PROG(HONGGFUZZ, honggfuzz, honggfuzz)
+    if test -z "$HONGGFUZZ"; then
+        AC_MSG_ERROR([failed to find honggfuzz])
+    fi
+fi
+
 AC_PROG_CC_C99
 AC_PROG_RANLIB
 AC_PROG_YACC
