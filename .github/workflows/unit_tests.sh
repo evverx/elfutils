@@ -101,14 +101,11 @@ for phase in "${PHASES[@]}"; do
             autoreconf -i -f
             ./configure --enable-maintainer-mode
             make -j$(nproc) V=1
-            if ! make V=1 check; then
-                cat tests/test-suite.log
-                exit 1
-            fi
+            make V=1 VERBOSE=1 check
 
             # elfutils fails to compile with clang and --enable-sanitize-undefined
             if [[ "$phase" != "RUN_CLANG" ]]; then
-                make V=1 distcheck
+                make V=1 VERBOSE=1 distcheck
             fi
             ;;
         RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN)
@@ -169,10 +166,7 @@ for phase in "${PHASES[@]}"; do
                 ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=0" make -j$(nproc) V=1
             fi
 
-            if ! make V=1 check; then
-                cat tests/test-suite.log
-                exit 1
-            fi
+            make V=1 VERBOSE=1 check
             ;;
         COVERITY)
             coverity_install_script
