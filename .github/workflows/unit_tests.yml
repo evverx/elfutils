@@ -40,7 +40,7 @@ jobs:
           autoreconf -i -f
           ./configure --enable-maintainer-mode --enable-gcov
           make -j$(nproc) V=1
-          make V=1 check
+          make V=1 VERBOSE=1 check
           make V=1 coverage
       - name: Coveralls
         uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
