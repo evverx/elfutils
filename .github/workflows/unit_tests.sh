@@ -12,6 +12,8 @@ ADDITIONAL_DEPS=(
     libzstd-dev
     valgrind
     lcov
+    libbfd-dev
+    libunwind8-dev
 )
 COVERITY_SCAN_TOOL_BASE="/tmp/coverity-scan-analysis"
 COVERITY_SCAN_PROJECT_NAME="evverx/elfutils"
@@ -78,11 +80,15 @@ for phase in "${PHASES[@]}"; do
             apt-get -y update
             apt-get build-dep -y --no-install-recommends elfutils
             apt-get -y install "${ADDITIONAL_DEPS[@]}"
+
+            git clone https://github.com/google/honggfuzz
+            (cd honggfuzz; make; make PREFIX=/usr install)
             ;;
-        RUN_GCC|RUN_CLANG)
-            export CC=gcc
-            export CXX=g++
-            if [[ "$phase" = "RUN_CLANG" ]]; then
+        RUN_GCC|RUN_CLANG|RUN_GCC_HONGGFUZZ)
+            if [[ "$phase" = "RUN_GCC" ]]; then
+                export CC=gcc
+                export CXX=g++
+            elif [[ "$phase" = "RUN_CLANG" ]]; then
                 export CC=clang
                 export CXX=clang++
                 # elfutils is failing to compile with clang with -Werror
@@ -95,11 +101,15 @@ for phase in "${PHASES[@]}"; do
                 flags="-g -O2 -fno-addrsig -Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
                 export CFLAGS="$flags"
                 export CXXFLAGS="$flags"
+            elif [[ "$phase" = "RUN_GCC_HONGGFUZZ" ]]; then
+                additional_configure_flags="--enable-honggfuzz"
             fi
 
-            $CC --version
             autoreconf -i -f
-            ./configure --enable-maintainer-mode
+            if ! ./configure --enable-maintainer-mode $additional_configure_flags; then
+                cat config.log
+                exit 1
+            fi
             make -j$(nproc) V=1
             make V=1 VERBOSE=1 check
 
@@ -108,10 +118,7 @@ for phase in "${PHASES[@]}"; do
                 make V=1 VERBOSE=1 distcheck
             fi
             ;;
-        RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN)
-            export CC=gcc
-            export CXX=g++
-
+        RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN|RUN_GCC_ASAN_UBSAN_HONGGFUZZ|RUN_CLANG_ASAN_UBSAN_HONGGFUZZ)
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
 
@@ -122,14 +129,24 @@ for phase in "${PHASES[@]}"; do
             export CXXFLAGS="$common_flags"
 
             if [[ "$phase" = "RUN_GCC_ASAN_UBSAN" ]]; then
+                export CC=gcc
+                export CXX=g++
                 additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address"
-            elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
+            elif [[ "$phase" = "RUN_GCC_ASAN_UBSAN_HONGGFUZZ" ]]; then
+                additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address --enable-honggfuzz"
+            elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" || "$phase" = "RUN_CLANG_ASAN_UBSAN_HONGGFUZZ" ]]; then
                 export CC=clang
                 export CXX=clang++
 
+                if [[ "$phase" = "RUN_CLANG_ASAN_UBSAN_HONGGFUZZ" ]]; then
+                    export CC=hfuzz-clang
+                    export CXX=hfuzz-clang++
+                    additional_configure_flags="--enable-honggfuzz"
+                fi
+
                 # https://github.com/evverx/elfutils/issues/16
                 # https://github.com/evverx/elfutils/issues/15
-                sanitize_flags="-fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound"
+                sanitize_flags="-fsanitize=address,undefined -fno-sanitize=pointer-overflow -fno-sanitize=vla-bound -fno-sanitize-recover=all"
 
                 # https://github.com/evverx/elfutils/issues/14
                 test_flags="-fno-addrsig"
@@ -152,18 +169,17 @@ for phase in "${PHASES[@]}"; do
                 sed -i 's/ test-nlist / /' tests/Makefile.am
             fi
 
-            $CC --version
             autoreconf -i -f
             if ! ./configure --enable-maintainer-mode $additional_configure_flags; then
                 cat config.log
                 exit 1
             fi
 
-            if [[ "$phase" = "RUN_GCC_ASAN_UBSAN" ]]; then
-                make -j$(nproc) V=1
-            elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" ]]; then
+            if [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" || "$phase" = "RUN_CLANG_ASAN_UBSAN_HONGGFUZZ" ]]; then
                 # https://github.com/evverx/elfutils/issues/20
                 ASAN_OPTIONS="$ASAN_OPTIONS:detect_leaks=0" make -j$(nproc) V=1
+            else
+                make -j$(nproc) V=1
             fi
 
             make V=1 VERBOSE=1 check
