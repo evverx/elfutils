@@ -21,6 +21,13 @@
 # for test case debugging, uncomment:
 set -x
 
+id
+systemd-detect-virt
+systemctl --version
+cat /proc/self/cgroup
+find /sys/fs/cgroup -name pids.max | xargs -I '{}' sh -c 'echo {}; cat {}'
+find /sys/fs/cgroup -name pids.events | xargs -I '{}' sh -c 'echo {}; cat {}'
+
 mkdir Z
 # This variable is essential and ensures no time-race for claiming ports occurs
 # set base to a unique multiple of 100 not used in any other 'run-debuginfod-*' test
@@ -35,6 +42,8 @@ tempfiles Z
 
 for Cnum in "" "-C" "-C10" "-C100"
 do
+	find /sys/fs/cgroup -name pids.max | xargs -I '{}' sh -c 'echo FINDME BEGIN {}; cat {}'
+	find /sys/fs/cgroup -name pids.events | xargs -I '{}' sh -c 'echo FINDME BEGIN {}; cat {}'
     env LD_LIBRARY_PATH=$ldpath ${abs_builddir}/../debuginfod/debuginfod $VERBOSE $Cnum -d :memory: -Z .tar.xz -Z .tar.bz2=bzcat -p $PORT1 -t0 -g0 -v --fdcache-fds=0 --fdcache-prefetch-fds=0 Z >> vlog$PORT1 2>&1 &
     PID1=$!
     tempfiles vlog$PORT1
@@ -59,6 +68,8 @@ do
      kill $PID1) &
     wait # for all curls, the ()& from just above, and for debuginfod
     PID1=0
+	find /sys/fs/cgroup -name pids.max | xargs -I '{}' sh -c 'echo FINDME END {}; cat {}'
+	find /sys/fs/cgroup -name pids.events | xargs -I '{}' sh -c 'echo FINDME END {}; cat {}'
 done
 
 xfail "grep Server.reached.connection vlog$PORT1" # PR18661
