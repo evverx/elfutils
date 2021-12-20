@@ -8,12 +8,14 @@
 unset ASAN_OPTIONS
 unset UBSAN_OPTIONS
 
+timeout=30
+
 # run_one is used to process files without honggfuzz
 # to get backtraces that otherwise can be borked in honggfuzz runs
 # so it has to set ASAN and UBSAN options itself
 run_one()
 {
-    testrun env \
+    testrun timeout -s9 $timeout env \
         ASAN_OPTIONS=allocator_may_return_null=1 \
         UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1 \
         ${abs_builddir}/fuzz-dwfl-core "$1"
@@ -38,7 +40,7 @@ if [ -n "$honggfuzz" ]; then
 
     testrun $honggfuzz --run_time ${FUZZ_TIME:-180} -n 1 -v --exit_upon_crash \
             -i ${abs_srcdir}/fuzz-dwfl-core-crashes/ \
-            -t 30 \
+            -t $timeout --tmout_sigvtalrm \
             -o OUT \
             --logfile log \
             -- ${abs_builddir}/fuzz-dwfl-core ___FILE___
