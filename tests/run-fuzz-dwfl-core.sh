@@ -2,6 +2,19 @@
 
 . $srcdir/test-subr.sh
 
+# Valgrind is turned off because hongfuzz keeps track of
+# processes and signals they receive and valgrind shouldn't
+# interfer with that. Apart from that it reports memory leaks
+# in timeout we aren't interested in:
+#==53620== 8 bytes in 1 blocks are definitely lost in loss record 1 of 1
+#==53620==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+#==53620==    by 0x4860959: timer_create@@GLIBC_2.3.3 (timer_create.c:59)
+#==53620==    by 0x10AFCD: ??? (in /usr/bin/timeout)
+#==53620==    by 0x10AC18: ??? (in /usr/bin/timeout)
+#==53620==    by 0x48B00B2: (below main) (libc-start.c:308)
+#==53620==
+unset VALGRIND_CMD
+
 # honggfuzz sets ASAN and UBSAN options compatible with it
 # so they are reset early to prevent the environment from
 # affecting the test
@@ -23,17 +36,11 @@ run_one()
 
 # Here the fuzz target processes files one by one to be able
 # to catch memory leaks and other issues that can't be discovered
-# with honggfuzz. This part can be run under ASan/UBSan/Valgrind
-# so it is never skipped
+# with honggfuzz.
 exit_status=0
 for file in ${abs_srcdir}/fuzz-dwfl-core-crashes/*; do
     run_one $file || { echo "*** failure in $file"; exit_status=1; }
 done
-
-# Here Valgrind is turned off because
-# hongfuzz keeps track of processes and signals they receive
-# and valgrind shouldn't interfer with that
-unset VALGRIND_CMD
 
 if [ -n "$honggfuzz" ]; then
     tempfiles log
