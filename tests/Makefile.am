@@ -606,10 +606,12 @@ installed_TESTS_ENVIRONMENT = libdir='$(DESTDIR)$(libdir)'; \
 			      abs_srcdir='$(abs_srcdir)'; \
 			      abs_builddir='$(abs_builddir)'; \
 			      abs_top_builddir='$(abs_top_builddir)'; \
+			      afl_fuzz='$(AFL_FUZZ)'; \
 			      honggfuzz='$(HONGGFUZZ)'; \
 			      export abs_srcdir; export abs_builddir; \
 			      export abs_top_builddir; \
 			      export libdir; export bindir; \
+			      export afl_fuzz; \
 			      export honggfuzz; \
 			      export LC_ALL; export LANG; export VALGRIND_CMD; \
 			      unset DEBUGINFOD_URLS; \
@@ -622,9 +624,11 @@ TESTS_ENVIRONMENT = LC_ALL=C; LANG=C; VALGRIND_CMD='$(valgrind_cmd)'; \
 		    abs_srcdir='$(abs_srcdir)'; \
 		    abs_builddir='$(abs_builddir)'; \
 		    abs_top_builddir='$(abs_top_builddir)'; \
+		    afl_fuzz='$(AFL_FUZZ)'; \
 		    honggfuzz='$(HONGGFUZZ)'; \
 		    export abs_srcdir; export abs_builddir; \
 		    export abs_top_builddir; \
+		    export afl_fuzz; \
 		    export honggfuzz; \
 		    export LC_ALL; export LANG; export VALGRIND_CMD; \
 		    unset DEBUGINFOD_URLS; \

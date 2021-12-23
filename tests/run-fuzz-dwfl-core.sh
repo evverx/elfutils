@@ -71,4 +71,22 @@ if [ -n "$honggfuzz" ]; then
     fi
 fi
 
+if [ -n "$afl_fuzz" ]; then
+    common_san_opts="abort_on_error=1:malloc_context_size=0:symbolize=0:allocator_may_return_null=1"
+    handle_san_opts="handle_segv=0:handle_sigbus=0:handle_abort=0:handle_sigfpe=0:handle_sigill=0"
+    testrun timeout --preserve-status ${FUZZ_TIME:-180} \
+	    env AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
+	        ASAN_OPTIONS="$common_san_opts:$handle_san_opts:detect_leaks=0:detect_odr_violation=0" \
+	        UBSAN_OPTIONS="$common_san_opts:$handle_san_opts:halt_on_error=1" \
+	    $afl_fuzz -i ${abs_srcdir}/fuzz-dwfl-core-crashes/ \
+	    -t $(expr $timeout '*' 1000) \
+	    -m none \
+	    -o OUT \
+	    -- ${abs_builddir}/fuzz-dwfl-core @@
+
+    afl-whatsup OUT/crashes
+
+    rm -rf OUT
+fi
+
 exit $exit_status
