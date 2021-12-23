@@ -14,6 +14,7 @@ ADDITIONAL_DEPS=(
     lcov
     libbfd-dev
     libunwind8-dev
+    afl++
 )
 COVERITY_SCAN_TOOL_BASE="/tmp/coverity-scan-analysis"
 COVERITY_SCAN_PROJECT_NAME="evverx/elfutils"
@@ -84,7 +85,7 @@ for phase in "${PHASES[@]}"; do
             git clone https://github.com/google/honggfuzz
             (cd honggfuzz; make; make PREFIX=/usr install)
             ;;
-        RUN_GCC|RUN_CLANG|RUN_GCC_HONGGFUZZ)
+        RUN_GCC|RUN_CLANG|RUN_GCC_HONGGFUZZ|RUN_GCC_AFL)
             if [[ "$phase" = "RUN_GCC" ]]; then
                 export CC=gcc
                 export CXX=g++
@@ -103,6 +104,8 @@ for phase in "${PHASES[@]}"; do
                 export CXXFLAGS="$flags"
             elif [[ "$phase" = "RUN_GCC_HONGGFUZZ" ]]; then
                 additional_configure_flags="--enable-honggfuzz"
+            elif [[ "$phase" = "RUN_GCC_AFL" ]]; then
+                additional_configure_flags="--enable-afl"
             fi
 
             autoreconf -i -f
@@ -115,10 +118,10 @@ for phase in "${PHASES[@]}"; do
 
             # elfutils fails to compile with clang and --enable-sanitize-undefined
             if [[ "$phase" != "RUN_CLANG" ]]; then
-                make V=1 VERBOSE=1 distcheck
+                make V=1 VERBOSE=1 distcheck TESTS=run-fuzz-dwfl-core.sh
             fi
             ;;
-        RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN|RUN_GCC_ASAN_UBSAN_HONGGFUZZ|RUN_CLANG_ASAN_UBSAN_HONGGFUZZ)
+        RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN|RUN_GCC_ASAN_UBSAN_HONGGFUZZ|RUN_CLANG_ASAN_UBSAN_HONGGFUZZ|RUN_GCC_ASAN_UBSAN_AFL)
             # strict_string_checks= is off due to https://github.com/evverx/elfutils/issues/9
             export ASAN_OPTIONS="detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
 
@@ -134,6 +137,8 @@ for phase in "${PHASES[@]}"; do
                 additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address"
             elif [[ "$phase" = "RUN_GCC_ASAN_UBSAN_HONGGFUZZ" ]]; then
                 additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address --enable-honggfuzz"
+            elif [[ "$phase" = "RUN_GCC_ASAN_UBSAN_AFL" ]]; then
+                additional_configure_flags="--enable-sanitize-undefined --enable-sanitize-address --enable-afl"
             elif [[ "$phase" = "RUN_CLANG_ASAN_UBSAN" || "$phase" = "RUN_CLANG_ASAN_UBSAN_HONGGFUZZ" ]]; then
                 export CC=clang
                 export CXX=clang++
