@@ -2,7 +2,7 @@
 
 . $srcdir/test-subr.sh
 
-# Valgrind is turned off because hongfuzz keeps track of
+# Valgrind is turned off because hongfuzz and AFL keep track of
 # processes and signals they receive and valgrind shouldn't
 # interfer with that. Apart from that it reports memory leaks
 # in timeout we aren't interested in:
@@ -21,6 +21,7 @@ unset VALGRIND_CMD
 unset ASAN_OPTIONS
 unset UBSAN_OPTIONS
 
+fuzz_time=${FUZZ_TIME:-180}
 timeout=30
 
 # run_one is used to process files without honggfuzz
@@ -37,15 +38,14 @@ run_one()
 # Here the fuzz target processes files one by one to be able
 # to catch memory leaks and other issues that can't be discovered
 # with honggfuzz.
-exit_status=0
-for file in ${abs_srcdir}/fuzz-dwfl-core-crashes/*; do
-    run_one $file || { echo "*** failure in $file"; exit_status=1; }
+find ${abs_srcdir}/fuzz-dwfl-core-crashes/ -type f | while read file; do
+    run_one $file || { echo "*** failure in $file"; printf "$file\n" >>CRASHES; }
 done
 
 if [ -n "$honggfuzz" ]; then
     tempfiles log
 
-    testrun $honggfuzz --run_time ${FUZZ_TIME:-180} -n 1 -v --exit_upon_crash \
+    testrun $honggfuzz --run_time $fuzz_time -n 1 -v --exit_upon_crash \
             -i ${abs_srcdir}/fuzz-dwfl-core-crashes/ \
             -t $timeout --tmout_sigvtalrm \
             -o OUT \
@@ -65,16 +65,18 @@ if [ -n "$honggfuzz" ]; then
         cat HF.sanitizer.log* || true
         cat HONGGFUZZ.REPORT.TXT
         for crash in $(sed -n 's/^FUZZ_FNAME: *//p' HONGGFUZZ.REPORT.TXT); do
-            run_one $crash || true
+            run_one $crash || { printf "$crash\n" >>CRASHES; }
         done
-        exit_status=1
     fi
 fi
 
 if [ -n "$afl_fuzz" ]; then
+    # ASAN_OPTIONS and UBSAN_OPTIONS are compatible with both AFL and AFL++. They were borrowed from
+    # https://github.com/AFLplusplus/AFLplusplus/blob/74a8f145e09d0361d8f576eb3f2e8881b6116f18/src/afl-forkserver.c#L523
     common_san_opts="abort_on_error=1:malloc_context_size=0:symbolize=0:allocator_may_return_null=1"
     handle_san_opts="handle_segv=0:handle_sigbus=0:handle_abort=0:handle_sigfpe=0:handle_sigill=0"
-    testrun timeout --preserve-status ${FUZZ_TIME:-180} \
+
+    testrun timeout --preserve-status $fuzz_time \
 	    env AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
 	        ASAN_OPTIONS="$common_san_opts:$handle_san_opts:detect_leaks=0:detect_odr_violation=0" \
 	        UBSAN_OPTIONS="$common_san_opts:$handle_san_opts:halt_on_error=1" \
@@ -84,9 +86,17 @@ if [ -n "$afl_fuzz" ]; then
 	    -o OUT \
 	    -- ${abs_builddir}/fuzz-dwfl-core @@
 
-    afl-whatsup OUT/crashes
+    find OUT/crashes OUT/hangs -type f | while read file; do
+        run_one $file || { printf "$file\n" >>CRASHES; }
+    done
 
-    rm -rf OUT
+    [ -f CRASHES ] || rm -rf OUT
 fi
 
-exit $exit_status
+if [ -f CRASHES ]; then
+    printf "Files triggering various crashes:\n"
+    cat CRASHES
+    exit 1
+fi
+
+exit 0
