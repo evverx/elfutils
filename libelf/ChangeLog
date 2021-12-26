@@ -1,3 +1,18 @@
+2021-12-19  Mark Wielaard  <mark@klomp.org>
+
+	* elf_begin.c (file_read_elf): Cast ehdr to uintptr_t before e_shoff
+	alignment check. Only set shdr state when scncnt is larger than zero.
+
+2021-12-16  Mark Wielaard  <mark@klomp.org>
+
+	* libelfP.h (NOTE_ALIGN4): And with negative unsigned long.
+	(NOTE_ALIGN8): Likewise.
+
+2021-12-15  Mark Wielaard  <mark@klomp.org>
+
+	* elf_begin.c (get_shnum): Use offsetof to get field of unaligned
+	struct.
+
 2021-09-06  Dmitry V. Levin  <ldv@altlinux.org>
 
 	* common.h (allocate_elf): Remove cast of calloc return value.

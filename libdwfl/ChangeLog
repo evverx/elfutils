@@ -1,3 +1,110 @@
+2021-12-20  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Move
+	and initialize struct elf_build_id build_id early. Only free memory
+	early when no longer needed. Free memory if not NULL at out.
+
+2021-12-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Copy
+	data and set xlatefrom.d_buf to notes when data is not aligned.
+
+2021-12-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Copy
+	ph_buffer and set xlatefrom.d_buf to phdrsp when ph_buffer is not
+	aligned.
+
+2021-12-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Copy
+	buffer and set xlatefrom.d_buf to ehdr when buffer is not aligned.
+
+2021-12-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check
+	notes filesz. Rewrite reading of GElf_Nhdr.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Make sure
+	that dyn_filesz can contain at least one Elf_Dyn and isn't larger than
+	possible.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Make sure
+	that ph_buffer_size has room for at least one phdr.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Make
+	sure the note len increases each iteration.
+
+2021-12-17  Mark Wielaard  <mark@klomp.org>
+
+	* libdwflP.h (dwfl_segment_report_module): Add maxread argument.
+	* core-file.c (dwfl_core_file_report): Pass elf->maximum_size to
+	dwfl_segment_report_module.
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Add
+	maxread argument. Check file_trimmed_end against maxread.
+
+2021-12-16  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check
+	note data is properly aligned.
+
+2021-12-16  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Make sure phnum is non-zero.
+
+2021-12-16  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Make sure dyn_filesz / entsize is
+	non-zero.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Add
+	len overflow check while iterating notes.
+
+2021-12-15  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Make sure phent is either sizeof
+	Elf32_Phdr or sizeof Elf64_Phdr. Check in.d_size can hold at least one
+	Phdr.
+
+2021-12-12  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Don't
+	allocate more than SIZE_MAX.
+
+2021-12-09  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Limit dyn_filesz malloc size
+	to max possible. When converting make sure we don't exceed the number
+	of bytes available in either in.d_buf or out.d_buf.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check
+	Dwfl_Module isn't associated with an Elf before installing it.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Don't
+	trust e_shentsize.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Make sure phent != 0.
+
+2021-12-08  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (dwfl_link_map_report): Limit malloc size to max
+	possible. When converting make sure we don't exceed the number
+	of bytes available in either in.d_buf nor out.d_buf.
+
 2021-12-08  Mark Wielaard  <mark@klomp.org>
 
 	* dwfl_segment_report_module.c (dwfl_segment_report_module): Don't
