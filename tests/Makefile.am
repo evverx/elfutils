@@ -582,15 +582,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile_nvidia_linemap.bz2 \
 	     testfile-largealign.o.bz2 run-strip-largealign.sh \
 	     run-fuzz-dwfl-core.sh \
-	     fuzz-dwfl-core-crashes/empty \
-	     fuzz-dwfl-core-crashes/bugzilla-28660 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41566 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41568 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41570 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41572 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41574 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41575 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-42645
+	     fuzz-dwfl-core-crashes/core
 
 
 if USE_VALGRIND
