@@ -114,11 +114,11 @@ for phase in "${PHASES[@]}"; do
                 exit 1
             fi
             make -j$(nproc) V=1
-            make V=1 VERBOSE=1 check
+            make V=1 VERBOSE=1 check FUZZ_TIME=600
 
             # elfutils fails to compile with clang and --enable-sanitize-undefined
             if [[ "$phase" != "RUN_CLANG" ]]; then
-                make V=1 VERBOSE=1 distcheck TESTS=run-fuzz-dwfl-core.sh
+                make V=1 VERBOSE=1 distcheck TESTS=run-fuzz-dwfl-core.sh FUZZ_TIME=600
             fi
             ;;
         RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN|RUN_GCC_ASAN_UBSAN_HONGGFUZZ|RUN_CLANG_ASAN_UBSAN_HONGGFUZZ|RUN_GCC_ASAN_UBSAN_AFL)
@@ -187,7 +187,7 @@ for phase in "${PHASES[@]}"; do
                 make -j$(nproc) V=1
             fi
 
-            make V=1 VERBOSE=1 check
+            make V=1 VERBOSE=1 check FUZZ_TIME=600
             ;;
         COVERITY)
             coverity_install_script
