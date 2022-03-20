@@ -63,6 +63,8 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  msg_tst system-elf-libelf-test \
 		  nvidia_extended_linemap_libdw \
 		  fuzz-dwfl-core \
+		  fuzz-libdwfl \
+		  fuzz-libelf \
 		  $(asm_TESTS)
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
@@ -199,7 +201,9 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	$(asm_TESTS) run-disasm-bpf.sh run-low_high_pc-dw-form-indirect.sh \
 	run-nvidia-extended-linemap-libdw.sh run-nvidia-extended-linemap-readelf.sh \
 	run-readelf-dw-form-indirect.sh run-strip-largealign.sh \
-	run-fuzz-dwfl-core.sh
+	run-fuzz-dwfl-core.sh \
+	run-fuzz-libdwfl.sh \
+	run-fuzz-libelf.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -583,12 +587,19 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-nvidia-extended-linemap-libdw.sh run-nvidia-extended-linemap-readelf.sh \
 	     testfile_nvidia_linemap.bz2 \
 	     testfile-largealign.o.bz2 run-strip-largealign.sh \
+	     run-fuzzer.sh \
 	     run-fuzz-dwfl-core.sh \
+	     run-fuzz-libdwfl.sh \
+	     run-fuzz-libelf.sh \
 	     fuzz-dwfl-core-crashes/empty \
 	     fuzz-dwfl-core-crashes/bugzilla-28660 \
 	     fuzz-dwfl-core-crashes/oss-fuzz-41566 \
 	     fuzz-dwfl-core-crashes/oss-fuzz-41570 \
-	     fuzz-dwfl-core-crashes/oss-fuzz-41572
+	     fuzz-dwfl-core-crashes/oss-fuzz-41572 \
+	     fuzz-libdwfl-crashes/oss-fuzz-45629 \
+	     fuzz-libdwfl-crashes/oss-fuzz-45634 \
+	     fuzz-libdwfl-crashes/oss-fuzz-45646 \
+	     fuzz-libelf-crashes/oss-fuzz-45682
 
 
 if USE_VALGRIND
@@ -782,6 +793,12 @@ nvidia_extended_linemap_libdw_LDADD = $(libelf) $(libdw)
 noinst_HEADERS=fuzz.h
 fuzz_dwfl_core_SOURCES = fuzz-main.c fuzz-dwfl-core.c
 fuzz_dwfl_core_LDADD = $(libelf) $(libdw)
+
+fuzz_libdwfl_SOURCES = fuzz-main.c fuzz-libdwfl.c
+fuzz_libdwfl_LDADD = $(libelf) $(libdw)
+
+fuzz_libelf_SOURCES = fuzz-main.c fuzz-libelf.c
+fuzz_libelf_LDADD = $(libelf) $(libdw)
 
 # We want to test the libelf header against the system elf.h header.
 # Don't include any -I CPPFLAGS. Except when we install our own elf.h.

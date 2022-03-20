@@ -96,11 +96,15 @@ fi
 
 ASAN_OPTIONS=detect_leaks=0 make -j$(nproc) V=1
 
-$CC $CFLAGS \
-	-D_GNU_SOURCE -DHAVE_CONFIG_H \
-	-I. -I./lib -I./libelf -I./libebl -I./libdw -I./libdwelf -I./libdwfl -I./libasm \
-	-c tests/fuzz-dwfl-core.c -o fuzz-dwfl-core.o
-$CXX $CXXFLAGS $LIB_FUZZING_ENGINE fuzz-dwfl-core.o \
-	./libdw/libdw.a ./libelf/libelf.a -l:libz.a \
-	-o "$OUT/fuzz-dwfl-core"
-zip -r -j "$OUT/fuzz-dwfl-core_seed_corpus.zip" tests/fuzz-dwfl-core-crashes
+for f in tests/fuzz-*.c; do
+    target=$(basename $f .c)
+    [[ "$target" == "fuzz-main" ]] && continue
+    $CC $CFLAGS \
+      -D_GNU_SOURCE -DHAVE_CONFIG_H \
+      -I. -I./lib -I./libelf -I./libebl -I./libdw -I./libdwelf -I./libdwfl -I./libasm \
+      -c "$f" -o $target.o
+    $CXX $CXXFLAGS $LIB_FUZZING_ENGINE $target.o \
+      ./libdw/libdw.a ./libelf/libelf.a -l:libz.a \
+      -o "$OUT/$target"
+    zip -r -j "$OUT/${target}_seed_corpus.zip" tests/${target}-crashes
+done
