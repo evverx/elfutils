@@ -118,7 +118,7 @@ for phase in "${PHASES[@]}"; do
 
             # elfutils fails to compile with clang and --enable-sanitize-undefined
             if [[ "$phase" != "RUN_CLANG" ]]; then
-                make V=1 VERBOSE=1 distcheck TESTS=run-fuzz-dwfl-core.sh
+                make V=1 VERBOSE=1 distcheck TESTS='run-fuzz-dwfl-core.sh run-fuzz-libdwfl.sh run-fuzz-libelf.sh'
             fi
             ;;
         RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN|RUN_GCC_ASAN_UBSAN_HONGGFUZZ|RUN_CLANG_ASAN_UBSAN_HONGGFUZZ|RUN_GCC_ASAN_UBSAN_AFL)
