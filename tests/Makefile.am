@@ -598,7 +598,9 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     fuzz-dwfl-core-crashes/oss-fuzz-41572 \
 	     fuzz-libdwfl-crashes/oss-fuzz-45629 \
 	     fuzz-libdwfl-crashes/oss-fuzz-45634 \
+	     fuzz-libdwfl-crashes/oss-fuzz-45635 \
 	     fuzz-libdwfl-crashes/oss-fuzz-45646 \
+	     fuzz-libelf-crashes/oss-fuzz-45637 \
 	     fuzz-libelf-crashes/oss-fuzz-45682
 
 
