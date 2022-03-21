@@ -124,4 +124,10 @@ for f in tests/fuzz-*.c; do
       ./libdw/libdw.a ./libelf/libelf.a zlib/libz.a \
       -o "$OUT/$target"
     zip -r -j "$OUT/${target}_seed_corpus.zip" tests/${target}-crashes
+
+    tmp=$(mktemp)
+    if wget -O "$tmp" "https://storage.googleapis.com/elfutils-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/elfutils_${target}/public.zip"; then
+        zipmerge "$OUT/${target}_seed_corpus.zip" "$tmp"
+    fi
+    rm -rf "$tmp"
 done
