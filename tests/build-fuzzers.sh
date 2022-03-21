@@ -128,6 +128,8 @@ for f in tests/fuzz-*.c; do
     tmp=$(mktemp)
     if wget -O "$tmp" "https://storage.googleapis.com/elfutils-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/elfutils_${target}/public.zip"; then
         zipmerge "$OUT/${target}_seed_corpus.zip" "$tmp"
+    elif wget -O "$tmp" https://storage.googleapis.com/elfutils-backup.clusterfuzz-external.appspot.com/corpus/libFuzzer/elfutils_testfuzz/public.zip; then
+        zipmerge "$OUT/${target}_seed_corpus.zip" "$tmp"
     fi
     rm -rf "$tmp"
 done
