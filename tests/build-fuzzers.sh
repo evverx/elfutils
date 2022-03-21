@@ -97,23 +97,18 @@ fi
 ASAN_OPTIONS=detect_leaks=0 make -j$(nproc) V=1
 
 # External dependencies used by the fuzz targets have to be built
-# with MSan explictily to avoid bogus "security" bug reports like
+# explictily to avoid bogus "security" bug reports like
 # https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=45630
 # and https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=45631.
-zlib="-l:libz.a"
-if [[ "$SANITIZER" == memory ]]; then
-    (
-    git clone https://github.com/madler/zlib
-    cd zlib
-    git checkout v1.2.11
-    if ! ./configure --static; then
-        cat configure.log
-        exit 1
-    fi
-    make -j$(nproc) V=1
-    )
-    zlib=zlib/libz.a
+git clone https://github.com/madler/zlib
+pushd zlib
+git checkout v1.2.11
+if ! ./configure --static; then
+    cat configure.log
+    exit 1
 fi
+make -j$(nproc) V=1
+popd
 
 CFLAGS="$CFLAGS -Werror -Wall -Wextra"
 CXXFLAGS="$CXXFLAGS -Werror -Wall -Wextra"
@@ -126,7 +121,7 @@ for f in tests/fuzz-*.c; do
       -I. -I./lib -I./libelf -I./libebl -I./libdw -I./libdwelf -I./libdwfl -I./libasm \
       -c "$f" -o $target.o
     $CXX $CXXFLAGS $LIB_FUZZING_ENGINE $target.o \
-      ./libdw/libdw.a ./libelf/libelf.a "$zlib" \
+      ./libdw/libdw.a ./libelf/libelf.a zlib/libz.a \
       -o "$OUT/$target"
     zip -r -j "$OUT/${target}_seed_corpus.zip" tests/${target}-crashes
 done
