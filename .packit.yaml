@@ -33,3 +33,4 @@ jobs:
     - fedora-35-ppc64le
     - fedora-35-s390x
     - fedora-35-x86_64
+    - fedora-rawhide-x86_64
