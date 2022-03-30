@@ -20,6 +20,8 @@ actions:
     - "git clone https://src.fedoraproject.org/rpms/elfutils .packit_rpm --depth=1"
     # Drop the "sources" file so rebase-helper doesn't think we're a dist-git
     - "rm -fv .packit_rpm/sources"
+    # Drop patches
+    - "sed -ri '/^Patch[0-9][0-9]?:.+\\.patch/d' .packit_rpm/elfutils.spec"
     - sed -i '/configure CFLAGS=/s/$/ --enable-maintainer-mode/' .packit_rpm/elfutils.spec
 
 jobs:
