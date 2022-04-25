@@ -88,6 +88,43 @@ AS_IF([test "$use_locks" = yes],
 
 AH_TEMPLATE([USE_LOCKS], [Defined if libraries should be thread-safe.])
 
+AC_ARG_ENABLE([afl],
+AS_HELP_STRING([--enable-afl],[run fuzzers with afl]), [use_afl=$enableval], [use_afl=no])
+if test "$use_afl" = yes; then
+    AC_CHECK_PROG(CC, afl-gcc, afl-gcc)
+    if test -z "$CC"; then
+        AC_MSG_ERROR([failed to find afl-gcc])
+    fi
+    AC_CHECK_PROG(CXX, afl-g++, afl-g++)
+    if test -z "$CXX"; then
+        AC_MSG_ERROR([failed to find afl-g++])
+    fi
+    AC_CHECK_PROG(AFL_FUZZ, afl-fuzz, afl-fuzz)
+    if test -z "$AFL_FUZZ"; then
+        AC_MSG_ERROR([failed to find afl-fuzz])
+    fi
+fi
+
+AC_ARG_ENABLE([honggfuzz],
+AS_HELP_STRING([--enable-honggfuzz],[run fuzzers with honggfuzz]), [use_honggfuzz=$enableval], [use_honggfuzz=no])
+if test "$use_honggfuzz" = yes; then
+    if test "$use_afl" = yes; then
+      AC_MSG_ERROR([cannot enable afl and honggfuzz together])
+    fi
+    AC_CHECK_PROG(CC, hfuzz-gcc, hfuzz-gcc)
+    if test -z "$CC"; then
+        AC_MSG_ERROR([failed to find hfuzz-gcc])
+    fi
+    AC_CHECK_PROG(CXX, hfuzz-g++, hfuzz-g++)
+    if test -z "$CXX"; then
+        AC_MSG_ERROR([failed to find hfuzz-g++])
+    fi
+    AC_CHECK_PROG(HONGGFUZZ, honggfuzz, honggfuzz)
+    if test -z "$HONGGFUZZ"; then
+        AC_MSG_ERROR([failed to find honggfuzz])
+    fi
+fi
+
 AC_PROG_CC_C99
 AC_PROG_CXX
 AC_PROG_RANLIB
@@ -849,6 +886,8 @@ AC_MSG_NOTICE([
     debug branch prediction            : ${use_debugpred}
     gprof support                      : ${use_gprof}
     gcov support                       : ${use_gcov}
+    run fuzzers with honggfuzz         : ${use_honggfuzz}
+    run fuzzers with AFL               : ${use_afl}
     run all tests under valgrind       : ${use_valgrind}
     gcc undefined behaviour sanitizer  : ${use_undefined}
     gcc address sanitizer              : ${use_address}

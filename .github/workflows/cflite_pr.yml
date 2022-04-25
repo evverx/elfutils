@@ -26,6 +26,6 @@ jobs:
       uses: google/clusterfuzzlite/actions/run_fuzzers@41dccd0566905e2a7d1724e7883edbfa66d78877
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        fuzz-seconds: 600
+        fuzz-seconds: 10800
         mode: 'code-change'
         sanitizer: ${{ matrix.sanitizer }}
