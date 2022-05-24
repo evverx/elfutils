@@ -102,11 +102,7 @@ for phase in "${PHASES[@]}"; do
             ./configure --enable-maintainer-mode
             make -j$(nproc) V=1
             make V=1 VERBOSE=1 check
-
-            # elfutils fails to compile with clang and --enable-sanitize-undefined
-            if [[ "$phase" != "RUN_CLANG" ]]; then
-                make V=1 VERBOSE=1 distcheck
-            fi
+            make V=1 VERBOSE=1 distcheck
             ;;
         RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN)
             export CC=gcc
