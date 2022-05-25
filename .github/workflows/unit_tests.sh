@@ -79,10 +79,10 @@ for phase in "${PHASES[@]}"; do
             apt-get build-dep -y --no-install-recommends elfutils
             apt-get -y install "${ADDITIONAL_DEPS[@]}"
             ;;
-        RUN_GCC|RUN_CLANG)
+        RUN_GCC|RUN_CLANG|RUN_GCC_VALGRIND|RUN_CLANG_VALGRIND)
             export CC=gcc
             export CXX=g++
-            if [[ "$phase" = "RUN_CLANG" ]]; then
+            if [[ "$phase" =~ ^RUN_CLANG ]]; then
                 export CC=clang
                 export CXX=clang++
                 # elfutils is failing to compile with clang with -Werror
@@ -97,12 +97,19 @@ for phase in "${PHASES[@]}"; do
                 export CXXFLAGS="$flags"
             fi
 
+            if [[ "$phase" =~ VALGRIND$ ]]; then
+                additional_configure_flags="--enable-valgrind"
+            fi
+
             $CC --version
             autoreconf -i -f
-            ./configure --enable-maintainer-mode
+            ./configure --enable-maintainer-mode $additional_configure_flags
             make -j$(nproc) V=1
             make V=1 VERBOSE=1 check
-            make V=1 VERBOSE=1 distcheck
+
+            if [[ ! "$phase" =~ VALGRIND$ ]]; then
+                make V=1 VERBOSE=1 distcheck
+            fi
             ;;
         RUN_GCC_ASAN_UBSAN|RUN_CLANG_ASAN_UBSAN)
             export CC=gcc
