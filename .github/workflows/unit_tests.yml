@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run_phase: [GCC, GCC_ASAN_UBSAN, CLANG, CLANG_ASAN_UBSAN]
+        run_phase: [GCC, GCC_ASAN_UBSAN, GCC_VALGRIND, CLANG, CLANG_ASAN_UBSAN, CLANG_VALGRIND]
     steps:
       - name: Repository checkout
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
