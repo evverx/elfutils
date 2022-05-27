@@ -12,6 +12,7 @@ ADDITIONAL_DEPS=(
     libzstd-dev
     valgrind
     lcov
+    libc6-i386-dbgsym
 )
 COVERITY_SCAN_TOOL_BASE="/tmp/coverity-scan-analysis"
 COVERITY_SCAN_PROJECT_NAME="evverx/elfutils"
@@ -75,6 +76,8 @@ for phase in "${PHASES[@]}"; do
     case $phase in
         SETUP)
             bash -c "echo 'deb-src http://archive.ubuntu.com/ubuntu/ $RELEASE main restricted universe multiverse' >>/etc/apt/sources.list"
+            bash -c "echo 'deb http://ddebs.ubuntu.com $RELEASE main restricted universe multiverse' >>/etc/apt/sources.list"
+            apt-get install -y ubuntu-dbgsym-keyring
             apt-get -y update
             apt-get build-dep -y --no-install-recommends elfutils
             apt-get -y install "${ADDITIONAL_DEPS[@]}"
