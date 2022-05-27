@@ -40,10 +40,6 @@ jobs:
           autoreconf -i -f
           ./configure --enable-maintainer-mode --enable-gcov
           make -j$(nproc) V=1
-          # run-debuginfod-fd-prefetch-caches.sh fails on Ubuntu Focal
-          # when elfutils is built with --enable-gcov
-          # https://gist.github.com/evverx/362aa02f6ec8414d5a4f5bce59fbcd47
-          printf '#!/bin/bash\nexit 77\n' >tests/run-debuginfod-fd-prefetch-caches.sh
           make V=1 VERBOSE=1 check
           make V=1 coverage
       - name: Coveralls
