@@ -16,6 +16,13 @@ ADDITIONAL_DEPS=(
 COVERITY_SCAN_TOOL_BASE="/tmp/coverity-scan-analysis"
 COVERITY_SCAN_PROJECT_NAME="evverx/elfutils"
 
+# https://github.com/evverx/elfutils/issues/18
+CLANG_NO_ERROR_FLAGS=(
+    -Wno-error=xor-used-as-pow
+    -Wno-error=gnu-variable-sized-type-not-at-end
+    -Wno-error=unused-const-variable
+)
+
 set -ex
 
 function coverity_install_script {
@@ -92,7 +99,7 @@ for phase in "${PHASES[@]}"; do
                 # -g -O2: https://sourceware.org/bugzilla/show_bug.cgi?id=23914
                 #
                 # -fno-addrsig to fix "section [22] '.llvm_addrsig' has unsupported type 1879002115"
-                flags="-g -O2 -fno-addrsig -Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
+                flags="-g -O2 -fno-addrsig ${CLANG_NO_ERROR_FLAGS[@]}"
                 export CFLAGS="$flags"
                 export CXXFLAGS="$flags"
             fi
@@ -137,10 +144,8 @@ for phase in "${PHASES[@]}"; do
                 # https://github.com/evverx/elfutils/issues/14
                 test_flags="-fno-addrsig"
 
-                # https://github.com/evverx/elfutils/issues/18
-                no_error_flags="-Wno-error=xor-used-as-pow -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=unused-const-variable"
 
-                clang_flags="$common_flags $sanitize_flags $test_flags $no_error_flags"
+                clang_flags="$common_flags $sanitize_flags $test_flags ${CLANG_NO_ERROR_FLAGS[@]}"
                 export CFLAGS="$clang_flags"
                 export CXXFLAGS="$clang_flags"
 
