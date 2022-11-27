@@ -21,6 +21,7 @@ CLANG_NO_ERROR_FLAGS=(
     -Wno-error=xor-used-as-pow
     -Wno-error=gnu-variable-sized-type-not-at-end
     -Wno-error=unused-const-variable
+    -Wno-error=typedef-redefinition
 )
 
 set -ex
