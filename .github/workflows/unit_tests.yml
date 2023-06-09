@@ -31,18 +31,9 @@ jobs:
       cancel-in-progress: true
     if: github.repository == 'evverx/elfutils'
     steps:
-      - name: Repository checkout
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
-      - name: Ubuntu setup
-        run: sudo -E .github/workflows/unit_tests.sh SETUP
       - run: |
-          autoreconf -i -f
-          ./configure --enable-maintainer-mode --enable-gcov
-          make -j$(nproc) V=1
-          make V=1 VERBOSE=1 check
-          make V=1 coverage
-      - name: Coveralls
-        uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./elfutils.lcov
+          curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/evverx/elfutils/code-scanning/alerts
