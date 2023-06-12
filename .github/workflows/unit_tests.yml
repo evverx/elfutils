@@ -20,7 +20,7 @@ jobs:
         run_phase: [GCC, GCC_ASAN_UBSAN, GCC_VALGRIND, CLANG, CLANG_ASAN_UBSAN, CLANG_VALGRIND]
     steps:
       - name: Repository checkout
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
       - name: Install build dependencies
         run: sudo -E .github/workflows/unit_tests.sh SETUP
       - name: Build & test (${{ matrix.run_phase }})
@@ -33,7 +33,7 @@ jobs:
     if: github.repository == 'evverx/elfutils'
     steps:
       - name: Repository checkout
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
       - name: Ubuntu setup
         run: sudo -E .github/workflows/unit_tests.sh SETUP
       - run: |
